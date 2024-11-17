@@ -45,9 +45,6 @@ const userShema = new Schema(
       lowercase: true,
       required: [true, "password is required"],
     },
-    refreshToken: {
-      type: String,
-    },
   },
   { timestamps: true }
 );
