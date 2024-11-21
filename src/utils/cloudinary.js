@@ -37,6 +37,5 @@ const uploadOnCloudinary = async () =>{
     console.log(error)
   }
 }
-
 export {uploadOnCloudinary}
 

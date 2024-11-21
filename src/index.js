@@ -1,7 +1,8 @@
 import dotenv from 'dotenv'
-
+import { asyncHandler } from './utils/asyncHandler.js'
 import connectDB from './db_connection/index.js'
 import { app } from './app.js'
+import { registerUser } from './controllers/users.controllers.js'
 
 dotenv.config({
     path:'./env'
@@ -21,3 +22,4 @@ connectDB()
     console.log(`MONGODB CONNECTION FAILD || ${error}`);
     process.exit(1)
 })
+

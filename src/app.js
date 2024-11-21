@@ -14,6 +14,17 @@ app.use(cors({
 app.use(express.json({limit:"16kb"})) // this is use to set be json limit
 app.use(express.urlencoded({extended:true,limit:"16kb"})) // this is use to unecode url 
 app.use(express.static("public"))
-
 app.use(cookieParser())
+
+
+// routes import 
+
+import userRouter from "./routes/user.routes.js"
+
+
+// routes declaration
+
+app.use("/users",userRouter)
+
+ 
 export {app}
