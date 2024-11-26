@@ -8,7 +8,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRATE,
 });
 
-const uploadOnCloudinary = async () =>{
+const uploadOnCloudinary = async (LocalFilePath) =>{
   try {
     // upload file on cloudinary
     const response= await cloudinary.uploader.upload(LocalFilePath,{
@@ -27,7 +27,7 @@ const uploadOnCloudinary = async () =>{
     });
     console.log(autoCropUrl);
     // file optimise suscessfully 
-    const optimizeUrl = cloudinary.url("file"{
+    const optimizeUrl = cloudinary.url("file", {
       fetch_format:"auto",
       quality:"auto"
     })

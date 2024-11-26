@@ -26,7 +26,7 @@ const userShema = new Schema(
       required: [true, "user id is required"],
       index: true,
     },
-    avtar: {
+    avatar: {
       type: String,
       required: true,
     },
@@ -45,15 +45,18 @@ const userShema = new Schema(
       lowercase: true,
       required: [true, "password is required"],
     },
+    refreshToke: {
+      type:String
+    }
   },
   { timestamps: true }
 );
 
 // passowrd dicrption use of pre hook it is a mongo middleware
-userShema.pre("save", function async (next){
+userShema.pre("save", async function (next){
 
-    if(!this.isModified("password")) return next();
-    this.password = bcrypt(this.password,10)
+  if(!this.isModified("password")) return next();
+    this.password = await bcrypt(this.password,10)
     next()
 
 })
@@ -91,4 +94,4 @@ userShema.methods.generateRefreshToken = function(){
   )
 }
 
-export const User = mongoose.model("User", userShema);
+export const User = mongoose.model("User",userShema)
