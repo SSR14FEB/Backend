@@ -11,26 +11,28 @@ cloudinary.config({
 const uploadOnCloudinary = async (LocalFilePath) =>{
   try {
     // upload file on cloudinary
-    const response= await cloudinary.uploader.upload(LocalFilePath,{
+    if(!LocalFilePath) return null
+    const response = await cloudinary.uploader.upload(LocalFilePath,{
       resource_type:"auto",
-      public_id:"file"
+      // public_id:"file"
     })
     // file uploded successfully 
-    console.log("file is uploded successfully :",response)
+    
+  // Transform the image: auto-crop to square aspect_ratio
+    // const autoCropUrl = cloudinary.url("file", {
+    //   crop: "auto",
+    //   gravity: "auto",
+    //   width: 500,
+    //   height: 500,
+    // });
 
-    // Transform the image: auto-crop to square aspect_ratio
-    const autoCropUrl = cloudinary.url("file", {
-      crop: "auto",
-      gravity: "auto",
-      width: 500,
-      height: 500,
-    });
-    console.log(autoCropUrl);
-    // file optimise suscessfully 
-    const optimizeUrl = cloudinary.url("file", {
-      fetch_format:"auto",
-      quality:"auto"
-    })
+    // // file optimise suscessfully 
+    // const optimizeUrl = cloudinary.url("file", {
+    //   fetch_format:"auto",
+    //   quality:"auto"
+    // })
+    console.log("Response = ",response);
+    
     return response
 } catch (error) {
     fs.unlinkSync(LocalFilePath) // it remove the locally saved temprory file as the operation gose faild

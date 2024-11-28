@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 import jwt from "jsonwebtoken"
 
-import bcrytjs from "bcryptjs"
+import bcrypt from "bcryptjs"
 
 const userShema = new Schema(
   {
@@ -12,7 +12,7 @@ const userShema = new Schema(
       lowercase: true,
       trim: true,
       required: [true, "user id is required"],
-      index: ture,
+      index: true,
     },
     email: {
       type: String,
@@ -56,7 +56,7 @@ const userShema = new Schema(
 userShema.pre("save", async function (next){
 
   if(!this.isModified("password")) return next();
-    this.password = await bcrypt(this.password,10)
+    this.password = await bcrypt.hash(this.password,10)
     next()
 
 })
