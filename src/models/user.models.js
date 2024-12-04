@@ -63,7 +63,7 @@ userShema.pre("save", async function (next){
 
 // creating methoud to compare the password
 userShema.methods.isPasswordCorrect = async function(passowrd){
-    return bcrypt.compare(passowrd,this.passowrd)
+    return  await bcrypt.compare(passowrd,this.passowrd)
 }
 
 // gentration of access tokens and refresh tokens
@@ -82,7 +82,7 @@ userShema.methods.generateAccessToken = function(){
   )
 }
 
-userShema.methods.generateRefreshToken = function(){
+userShema.methods.generateAccessToken = function(){
   return jwt.sign(
     {
       _id:this.id,
