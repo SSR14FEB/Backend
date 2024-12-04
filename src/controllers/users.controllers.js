@@ -163,4 +163,5 @@ return res.status(200)
 export {
   registerUser,
   logInUser,
+  logOutUser
 }
