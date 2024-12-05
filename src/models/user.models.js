@@ -2,9 +2,9 @@ import mongoose, { Schema } from "mongoose";
 
 import jwt from "jsonwebtoken"
 
-import bcrypt from "bcryptjs"
+import bcrypt from "bcrypt"
 
-const userShema = new Schema(
+const userSchema = new Schema(
   {
     userName: {
       type: String,
@@ -41,8 +41,6 @@ const userShema = new Schema(
     ],
     password: {
       type: String,
-      unique: true,
-      lowercase: true,
       required: [true, "password is required"],
     },
     refreshToke: {
@@ -53,21 +51,22 @@ const userShema = new Schema(
 );
 
 // passowrd dicrption use of pre hook it is a mongo middleware
-userShema.pre("save", async function (next){
+userSchema.pre("save", async function (next) {
 
   if(!this.isModified("password")) return next();
-    this.password = await bcrypt.hash(this.password,10)
-    next()
 
+  this.password = await bcrypt.hash(this.password, 10)
+  await console.log(this.password)
+  next()
 })
 
 // creating methoud to compare the password
-userShema.methods.isPasswordCorrect = async function(passowrd){
-    return  await bcrypt.compare(passowrd,this.passowrd)
+userSchema.methods.isPasswordCorrect = async function(password){
+return await bcrypt.compare(password, this.password)
 }
 
 // gentration of access tokens and refresh tokens
-userShema.methods.generateAccessToken = function(){
+userSchema.methods.generateAccessToken = function(){
   return jwt.sign(
     {
       _id:this.id,
@@ -82,7 +81,7 @@ userShema.methods.generateAccessToken = function(){
   )
 }
 
-userShema.methods.generateAccessToken = function(){
+userSchema.methods.generateRefreshToken = function(){
   return jwt.sign(
     {
       _id:this.id,
@@ -94,4 +93,4 @@ userShema.methods.generateAccessToken = function(){
   )
 }
 
-export const User = mongoose.model("User",userShema)
+export const User = mongoose.model("User",userSchema)

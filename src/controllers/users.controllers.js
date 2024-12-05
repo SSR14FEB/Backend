@@ -4,16 +4,16 @@ import {User} from "../models/user.models.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { apiResponse } from "../utils/apiResponse.js"
 
-const generateAccessTokenAndRefreshToken = async(userId) =>{
+const generateAccessTokenAndRefreshToken = async (userId) =>{
 try {
-    const user = User.findById(userId)
-    const accessToken = generateAccessToken()
-    const refershToken = generateAccessToken()
+    const user = await User.findById(userId)
+    const accessToken = user.generateAccessToken()
+    const refershToken = user.generateRefreshToken()
 
     user.refershToken = refershToken
-    await user.save({ validateBeforeSave:false })
-
+    await user.save({ validateBeforeSave : false })
     return { accessToken, refershToken }
+
 } catch (error) {
   throw new apiError(500,"Something went wrong while genrating refreshToken and accessToken")
 }
@@ -99,7 +99,8 @@ const logInUser = asyncHandler(async(req,res)=>{
 
   const {userName, email, password} = req.body
   
-  if(!userName||email){
+  console.log(email,password)
+  if(!(userName||email)){
     throw new apiError(400,"User name or email is required ")
   }
 
@@ -110,7 +111,9 @@ const logInUser = asyncHandler(async(req,res)=>{
       throw new apiError(404,"User dose not exist")
     }
 
-  const isPasswordValid = await user.isPasswordCorrect(password)
+    const isPasswordValid = await user.isPasswordCorrect(password)
+    
+    console.log(isPasswordValid)
 
   if(!isPasswordValid){
     throw new apiError(401,"Invalid user credentails")
@@ -132,7 +135,7 @@ return res.status(200)
 .json(
   new apiResponse(
     200,{
-      user:logedInUser,accessToken,refershToken
+      user:logInUser,accessToken,refershToken
     },
     "Loged in successfully"
   )
@@ -147,7 +150,7 @@ const logOutUser = asyncHandler(async(req,res)=>{
   {
     new:true
   }
-)
+) 
 
 const option = {
   httpOnly:true,

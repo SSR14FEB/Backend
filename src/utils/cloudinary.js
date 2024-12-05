@@ -31,7 +31,6 @@ const uploadOnCloudinary = async (LocalFilePath) =>{
     //   fetch_format:"auto",
     //   quality:"auto"
     // })
-    console.log("Response = ",response);
     
     return response
 } catch (error) {
