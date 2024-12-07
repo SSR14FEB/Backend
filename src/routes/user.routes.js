@@ -4,6 +4,7 @@ import { upload } from '../middlewares/multer.middlewares.js'
 import { logInUser} from '../controllers/users.controllers.js'
 import { logOutUser } from '../controllers/users.controllers.js'
 import { jwtValidation } from '../middlewares/auth.middlewares.js'
+import { refershAcessToken } from '../controllers/users.controllers.js'
 
 const router = Router()
 
@@ -22,5 +23,7 @@ registerUser)
 router.route("/login").post(logInUser)
 
 router.route("/logout").post(jwtValidation, logOutUser)
+
+router.route("/refres-token").post(refershAcessToken)
 
 export default router  
