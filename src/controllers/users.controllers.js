@@ -302,6 +302,78 @@ const updatedUserCoverIamger = asyncHandler(async(req,res)=>{
 
 })
 
+const getUserChanelProfile = asyncHandler(async(req,res)=>{
+  const {userName} = req.params
+  if(!userName?.trim()){
+    throw new apiError(400,"user not found")
+  }
+
+ const channel = await User.aggregate([
+  {
+    $match:{
+      userName:userName?.toLowerCase()
+    }
+  },
+  {
+    $lookup:{
+      form:"sububscriptions",
+      localField:"_id",
+      foreignField:"channel",
+      as:"Subuscribers"
+    }
+  },
+  {
+    $lookup:{
+      form:"sububscriptions",
+      localField:"_id",
+      foreignField:"subuscriber",
+      as:"subuscriberTo"
+    }
+  },
+  {
+    $addFields:{
+      subuscribersCount:{
+        $size:"$Subuscribers"
+      },
+      chanelSubuscribeToCount:{
+        $size:"$subuscribeTo"
+      }
+    }
+  },
+  {
+    isSubuscribed:{
+      $cond:{
+        if:{$in:[req.user?._id,"$subuscribers.subuscriber"]},
+        then:true,
+        else:false
+      }
+    }
+  },
+  {
+    $project:{
+      fullName:1,
+      userName:1,
+      email:1,
+      avatar:1,
+      coverImage:1,
+      subuscribersCount:1,
+      chanelSubuscribeToCount:1,
+      isSubuscribed:1,
+
+    }
+  }
+ ])
+
+ if(!channel.length){
+  throw new apiError(404,"chanel not found")
+ }
+
+ return req.status(200)
+.json(new apiResponse(200,channel[0],"User chanel fetched successfully"))
+})
+
+
+
 export { 
   registerUser, 
   logInUser, 
@@ -311,5 +383,6 @@ export {
   currentUser,
   upadteAccountDetalis,
   updatedUserAvatar,
-  updatedUserCoverIamger
+  updatedUserCoverIamger,
+  getUserChanelProfile
   };
