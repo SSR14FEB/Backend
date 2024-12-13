@@ -1,5 +1,14 @@
 import {Router} from 'express'
-import { registerUser } from '../controllers/users.controllers.js'
+import { 
+    changeCurrentPassword, 
+    currentUser, 
+    getUserChanelProfile, 
+    getUserWatchHistory, 
+    registerUser, 
+    upadteAccountDetalis, 
+    updatedUserAvatar, 
+    updatedUserCoverIamger 
+} from '../controllers/users.controllers.js'
 import { upload } from '../middlewares/multer.middlewares.js'
 import { logInUser} from '../controllers/users.controllers.js'
 import { logOutUser } from '../controllers/users.controllers.js'
@@ -8,7 +17,9 @@ import { refershAcessToken } from '../controllers/users.controllers.js'
 
 const router = Router()
 
-router.route("/register").post(upload.fields([
+router
+.route("/register")
+.post(upload.fields([
     {
         name:"avatar",
         maxCount:1
@@ -20,10 +31,46 @@ router.route("/register").post(upload.fields([
 ]), 
 registerUser)
 
-router.route("/login").post(logInUser)
+router
+.route("/login")
+.post(logInUser)
 
-router.route("/logout").post(jwtValidation, logOutUser)
+router
+.route("/logout")
+.post(jwtValidation, logOutUser)
 
-router.route("/refres-token").post(refershAcessToken)
+router
+.route("/refres-token")
+.post(refershAcessToken)
+
+router
+.route("/get-current-user")
+.get(jwtValidation, currentUser)
+
+router
+.route("/change-password")
+.post(jwtValidation,changeCurrentPassword)
+
+router
+.route("/update-user-details")
+.patch(jwtValidation, upadteAccountDetalis)
+
+router
+.route("/upadate-user-avatar")
+.patch(jwtValidation, upload.single("avatar"),updatedUserAvatar)
+
+router
+.route("/upadate-user-coverImage")
+.patch(jwtValidation, upload.single("coverImage"),updatedUserCoverIamger)
+
+router
+.route("/chanel/:username")
+.get(jwtValidation, getUserChanelProfile)
+
+router
+.route("/history")
+.get(jwtValidation, getUserWatchHistory)
+
+
 
 export default router  

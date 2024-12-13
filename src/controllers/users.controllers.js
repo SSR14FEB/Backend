@@ -4,6 +4,7 @@ import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import jwt, { decode } from "jsonwebtoken"
+import mongoose from "mongoose";
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
   try {
@@ -269,7 +270,7 @@ const updatedUserAvatar = asyncHandler(async(req,res)=>{
     throw new apiError(400, "Error while uploading avatar")
   }
 
-  const user await User.findByIdAndUpdate(req.userId._id,
+  const user = await User.findByIdAndUpdate(req.userId._id,
     {$set:
       {avatar:avatar.url}
   },{new:true}.select("-password")
@@ -372,7 +373,48 @@ const getUserChanelProfile = asyncHandler(async(req,res)=>{
 .json(new apiResponse(200,channel[0],"User chanel fetched successfully"))
 })
 
+const getUserWatchHistory = asyncHandler(async(req,res)=>{
+const user = await User.aggregate([
+    {
+      $match : {
+        _id : new mongoose.Types.ObjectId(req.user._id)
+      }
+    },
+    {
+      $lookup : {
+        from : "videos",
+        localField : "watchHistory",
+        foreignField : "_id",
+        as : "watchHistory",
+        pipeline : [{
+            $lookup : {
+              from : "users",
+              localField : "owner",
+              foreignField : "_id",
+              as : "owner",
+              pipeline : [{
+                  $project : [{
+                    avatar : 1,
+                    userName : 1,
+                    fullName : 1,
+                    email : 1,
+                },{
+                  $addFields :{
+                    owner : {
+                      $first : "$owner"
+                    }
+                  }
+                }]
+            }]
+          }
+        }]
+      }
+    }
+   ])
 
+   return req.status(200)
+   .json(new apiResponse(200,user[0].WatchHistory,"User watch history"))
+})
 
 export { 
   registerUser, 
@@ -384,5 +426,6 @@ export {
   upadteAccountDetalis,
   updatedUserAvatar,
   updatedUserCoverIamger,
-  getUserChanelProfile
+  getUserChanelProfile,
+  getUserWatchHistory
   };
