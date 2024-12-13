@@ -49,7 +49,7 @@ router
 
 router
 .route("/change-password")
-.post(jwtValidation,changeCurrentPassword)
+.patch(jwtValidation,changeCurrentPassword)
 
 router
 .route("/update-user-details")
@@ -61,7 +61,7 @@ router
 
 router
 .route("/upadate-user-coverImage")
-.patch(jwtValidation, upload.single("coverImage"),updatedUserCoverIamger)
+.patch(jwtValidation, upload.single("coverimage"),updatedUserCoverIamger)
 
 router
 .route("/chanel/:username")

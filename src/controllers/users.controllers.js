@@ -2,9 +2,11 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { apiError } from "../utils/apiError.js";
 import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteAssest } from "../utils/deleteCloudinaryImage.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import jwt, { decode } from "jsonwebtoken"
 import mongoose from "mongoose";
+
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
   try {
@@ -217,13 +219,13 @@ const changeCurrentPassword = asyncHandler(async(req,res)=>{
     throw new apiError(401,"Passord did not match")
   }
   
-  const user = User.findById(req.user._id)
-  const isPasswrodValid = await user.confirmPassword(oldPassword)
+  const user = await User.findById(req.user._id)
+  console.log(user)
+  const isPasswrodValid = await user.isPasswordCorrect(oldPassword) 
 
   if(!isPasswrodValid){
     throw new apiError(400,"invalid password ")
   }
-
   user.password = newPassword
   await user.save({validateBeforeSave:false})
 
@@ -260,6 +262,10 @@ const upadteAccountDetalis = asyncHandler(async(req,res)=>{
 })
 
 const updatedUserAvatar = asyncHandler(async(req,res)=>{
+  const prevAvatarUrl = req.user.avatar
+  deleteAssest(prevAvatarUrl)
+
+
   const localAvatarPath= req.file?.path
   if(!localAvatarPath){
     throw new apiError(400,"Avatar is required")
@@ -270,11 +276,11 @@ const updatedUserAvatar = asyncHandler(async(req,res)=>{
     throw new apiError(400, "Error while uploading avatar")
   }
 
-  const user = await User.findByIdAndUpdate(req.userId._id,
+  const user = await User.findByIdAndUpdate(req.user._id,
     {$set:
       {avatar:avatar.url}
-  },{new:true}.select("-password")
-)
+  },{new:true}
+).select("-password")
 
   return res.status(200)
   .json(new apiResponse(200,user,"avatar updated successfully"))
@@ -282,6 +288,11 @@ const updatedUserAvatar = asyncHandler(async(req,res)=>{
 })
 
 const updatedUserCoverIamger = asyncHandler(async(req,res)=>{
+  const prevCoverImageUrl = req.user.coverImage
+  if(prevCoverImageUrl){
+  deleteAssest(prevCoverImageUrl)
+  }
+
   const localCoverImagePath = req.file?.path
   if(!localCoverImagePath){
     throw new apiError(400,"coverImage is required")
@@ -292,11 +303,11 @@ const updatedUserCoverIamger = asyncHandler(async(req,res)=>{
     throw new apiError(400, "Error while uploading avatar")
   }
 
-  const user = await User.findByIdAndUpdate(req.userId._id,
+  const user = await User.findByIdAndUpdate(req.user._id,
     {$set:
       {coverImage:coverImage.url}
-  },{new:true}.select("-password")
-)
+  },{new:true}
+).select("-password")
 
   return res.status(200)
   .json(new apiResponse(200,user,"coverImage updated successfully"))
