@@ -157,6 +157,8 @@ const logInUser = asyncHandler(async (req, res) => {
     );
 });
 
+
+
 const logOutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
@@ -313,7 +315,6 @@ const updatedUserCoverIamger = asyncHandler(async(req,res)=>{
   .json(new apiResponse(200,user,"coverImage updated successfully"))
 
 })
-
 const getUserChanelProfile = asyncHandler(async(req,res)=>{
   const {userName} = req.params
   if(!userName?.trim()){

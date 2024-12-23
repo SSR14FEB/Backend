@@ -2,6 +2,7 @@ import {v2 as cloudinary} from "cloudinary"
 import { extractPublicId } from 'cloudinary-build-url'
 import { response } from "express"
 import { apiError } from "./apiError.js"
+import fs from 'fs'
 
 const deleteAssest = async(prevFile)=>{
     try {
