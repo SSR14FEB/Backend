@@ -4,9 +4,9 @@ import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { deleteAssest } from "../utils/deleteCloudinaryImage.js";
 import { apiResponse } from "../utils/apiResponse.js";
-import jwt, { decode } from "jsonwebtoken"
+import jwt, { decode } from "jsonwebtoken";
 import mongoose from "mongoose";
-
+import { Videos } from "../models/video.models.js";
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
   try {
@@ -157,15 +157,13 @@ const logInUser = asyncHandler(async (req, res) => {
     );
 });
 
-
-
 const logOutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
-      $unset:{
-        refershToken: 1 //this remove refreshToken from midilware
-      }
+      $unset: {
+        refershToken: 1, //this remove refreshToken from midilware
+      },
     },
     {
       new: true,
@@ -177,260 +175,316 @@ const logOutUser = asyncHandler(async (req, res) => {
     secure: true,
   };
 
-  return res.status(200)
+  return res
+    .status(200)
     .clearCookie("accessToken", option)
     .clearCookie("refershToken", option)
     .json(new apiResponse(200, {}, "User loged out successfully"));
 });
 
-const refershAcessToken = asyncHandler(async(req,res)=>{
-  const incomingRefreshToken = req.cookies?.refershToken || req.body?.refershToken
-  if(incomingRefreshToken != refershAcessToken ){
-    throw new apiError(401,"Unauthrised refresh roken")
+const refershAcessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.cookies?.refershToken || req.body?.refershToken;
+  if (incomingRefreshToken != refershAcessToken) {
+    throw new apiError(401, "Unauthrised refresh roken");
   }
   try {
-    const decodeToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
-  
-    const user = User.findById(decodeToken._id)
-    if(!user){
-      throw new apiError(401,"invalid refresh token or all ready use Refresh Token")
+    const decodeToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    const user = User.findById(decodeToken._id);
+    if (!user) {
+      throw new apiError(
+        401,
+        "invalid refresh token or all ready use Refresh Token"
+      );
     }
-  
-    const  {refershToken,accessToken} = await generateAccessTokenAndRefreshToken(req.user._id)
-  
+
+    const { refershToken, accessToken } =
+      await generateAccessTokenAndRefreshToken(req.user._id);
+
     const option = {
-      httpOnly:true,
-      secure:true
-    }
-    return res.status(200)
-    .cookies("acessToken", accessToken, option)
-    .cookies("aefreshToken", refershToken, option)
-    .json(new apiResponse(200,{
-      accessToken,
-      refershToken
-    },"new AcessToken and RefreshToken genrated"))
-  
+      httpOnly: true,
+      secure: true,
+    };
+    return res
+      .status(200)
+      .cookies("acessToken", accessToken, option)
+      .cookies("aefreshToken", refershToken, option)
+      .json(
+        new apiResponse(
+          200,
+          {
+            accessToken,
+            refershToken,
+          },
+          "new AcessToken and RefreshToken genrated"
+        )
+      );
   } catch (error) {
-    throw new apiError(500,error?.massage || "invalid Refresh Token")
+    throw new apiError(500, error?.massage || "invalid Refresh Token");
   }
-})
+});
 
-const changeCurrentPassword = asyncHandler(async(req,res)=>{
-  const {newPassword, confirmPassword, oldPassword} = req.body
-  if(newPassword!=confirmPassword){
-    throw new apiError(401,"Passord did not match")
-  }
-  
-  const user = await User.findById(req.user._id)
-  console.log(user)
-  const isPasswrodValid = await user.isPasswordCorrect(oldPassword) 
-
-  if(!isPasswrodValid){
-    throw new apiError(400,"invalid password ")
-  }
-  user.password = newPassword
-  await user.save({validateBeforeSave:false})
-
-  return res.status(200)
-  .json(
-    new apiResponse(200, {}, "Current password changed successfully")
-  )
-
-})
-
-const currentUser = asyncHandler(async(req,res)=>{
-  return req.status(200)
-  .json(200,req.user,"current user fetched successfully")
-})
-
-const upadteAccountDetalis = asyncHandler(async(req,res)=>{
-  const { fullName, email } = req.body
-
-  if([fullName, email].some((filds)=>{
-    filds?.trim()==" "
-  })){
-    return new apiError(400,"all fields are required")
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { newPassword, confirmPassword, oldPassword } = req.body;
+  if (newPassword != confirmPassword) {
+    throw new apiError(401, "Passord did not match");
   }
 
-  const user = await User.findByIdAndUpdate(req.user._id, {
-    $set:{
-      fullName:fullName,
-      email:email
-    }
-  },{new:true}).select("-password")
+  const user = await User.findById(req.user._id);
+  console.log(user);
+  const isPasswrodValid = await user.isPasswordCorrect(oldPassword);
 
-  return req.status(200)
-  .json(new apiResponse(200,user, "user detalis updated"))
-})
+  if (!isPasswrodValid) {
+    throw new apiError(400, "invalid password ");
+  }
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
 
-const updatedUserAvatar = asyncHandler(async(req,res)=>{
-  const prevAvatarUrl = req.user.avatar
-  deleteAssest(prevAvatarUrl)
+  return res
+    .status(200)
+    .json(new apiResponse(200, {}, "Current password changed successfully"));
+});
 
+const currentUser = asyncHandler(async (req, res) => {
+  return req
+    .status(200)
+    .json(200, req.user, "current user fetched successfully");
+});
 
-  const localAvatarPath= req.file?.path
-  if(!localAvatarPath){
-    throw new apiError(400,"Avatar is required")
+const upadteAccountDetalis = asyncHandler(async (req, res) => {
+  const { fullName, email } = req.body;
+
+  if (
+    [fullName, email].some((filds) => {
+      filds?.trim() == " ";
+    })
+  ) {
+    return new apiError(400, "all fields are required");
   }
 
-  const avatar = await uploadOnCloudinary(localAvatarPath)
-  if(!avatar.url){
-    throw new apiError(400, "Error while uploading avatar")
-  }
-
-  const user = await User.findByIdAndUpdate(req.user._id,
-    {$set:
-      {avatar:avatar.url}
-  },{new:true}
-).select("-password")
-
-  return res.status(200)
-  .json(new apiResponse(200,user,"avatar updated successfully"))
-
-})
-
-const updatedUserCoverIamger = asyncHandler(async(req,res)=>{
-  const prevCoverImageUrl = req.user.coverImage
-  if(prevCoverImageUrl){
-  deleteAssest(prevCoverImageUrl)
-  }
-
-  const localCoverImagePath = req.file?.path
-  if(!localCoverImagePath){
-    throw new apiError(400,"coverImage is required")
-  }
-
-  const coverImage = await uploadOnCloudinary(localCoverImagePath)
-  if(!coverImage.url){
-    throw new apiError(400, "Error while uploading avatar")
-  }
-
-  const user = await User.findByIdAndUpdate(req.user._id,
-    {$set:
-      {coverImage:coverImage.url}
-  },{new:true}
-).select("-password")
-
-  return res.status(200)
-  .json(new apiResponse(200,user,"coverImage updated successfully"))
-
-})
-const getUserChanelProfile = asyncHandler(async(req,res)=>{
-  const {userName} = req.params
-  if(!userName?.trim()){
-    throw new apiError(400,"user not found")
-  }
-
- const channel = await User.aggregate([
-  {
-    $match:{
-      userName:userName?.toLowerCase()
-    }
-  },
-  {
-    $lookup:{
-      form:"sububscriptions",
-      localField:"_id",
-      foreignField:"channel",
-      as:"Subuscribers"
-    }
-  },
-  {
-    $lookup:{
-      form:"sububscriptions",
-      localField:"_id",
-      foreignField:"subuscriber",
-      as:"subuscriberTo"
-    }
-  },
-  {
-    $addFields:{
-      subuscribersCount:{
-        $size:"$Subuscribers"
-      },
-      chanelSubuscribeToCount:{
-        $size:"$subuscribeTo"
-      }
-    }
-  },
-  {
-    isSubuscribed:{
-      $cond:{
-        if:{$in:[req.user?._id,"$subuscribers.subuscriber"]},
-        then:true,
-        else:false
-      }
-    }
-  },
-  {
-    $project:{
-      fullName:1,
-      userName:1,
-      email:1,
-      avatar:1,
-      coverImage:1,
-      subuscribersCount:1,
-      chanelSubuscribeToCount:1,
-      isSubuscribed:1,
-
-    }
-  }
- ])
-
- if(!channel.length){
-  throw new apiError(404,"chanel not found")
- }
-
- return req.status(200)
-.json(new apiResponse(200,channel[0],"User chanel fetched successfully"))
-})
-
-const getUserWatchHistory = asyncHandler(async(req,res)=>{
-const user = await User.aggregate([
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
     {
-      $match : {
-        _id : new mongoose.Types.ObjectId(req.user._id)
-      }
+      $set: {
+        fullName: fullName,
+        email: email,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  return req
+    .status(200)
+    .json(new apiResponse(200, user, "user detalis updated"));
+});
+
+const updatedUserAvatar = asyncHandler(async (req, res) => {
+  const prevAvatarUrl = req.user.avatar;
+  deleteAssest(prevAvatarUrl);
+
+  const localAvatarPath = req.file?.path;
+  if (!localAvatarPath) {
+    throw new apiError(400, "Avatar is required");
+  }
+
+  const avatar = await uploadOnCloudinary(localAvatarPath);
+  if (!avatar.url) {
+    throw new apiError(400, "Error while uploading avatar");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { avatar: avatar.url } },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, user, "avatar updated successfully"));
+});
+
+const updatedUserCoverIamger = asyncHandler(async (req, res) => {
+  const prevCoverImageUrl = req.user.coverImage;
+  if (prevCoverImageUrl) {
+    deleteAssest(prevCoverImageUrl);
+  }
+
+  const localCoverImagePath = req.file?.path;
+  if (!localCoverImagePath) {
+    throw new apiError(400, "coverImage is required");
+  }
+
+  const coverImage = await uploadOnCloudinary(localCoverImagePath);
+  if (!coverImage.url) {
+    throw new apiError(400, "Error while uploading avatar");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { coverImage: coverImage.url } },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, user, "coverImage updated successfully"));
+});
+const getUserChanelProfile = asyncHandler(async (req, res) => {
+  const { userName } = req.params;
+  if (!userName?.trim()) {
+    throw new apiError(400, "user not found");
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match: {
+        userName: userName?.toLowerCase(),
+      },
     },
     {
-      $lookup : {
-        from : "videos",
-        localField : "watchHistory",
-        foreignField : "_id",
-        as : "watchHistory",
-        pipeline : [{
-            $lookup : {
-              from : "users",
-              localField : "owner",
-              foreignField : "_id",
-              as : "owner",
-              pipeline : [{
-                  $project : [{
-                    avatar : 1,
-                    userName : 1,
-                    fullName : 1,
-                    email : 1,
-                },{
-                  $addFields :{
-                    owner : {
-                      $first : "$owner"
-                    }
-                  }
-                }]
-            }]
-          }
-        }]
-      }
-    }
-   ])
+      $lookup: {
+        form: "sububscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "Subuscribers",
+      },
+    },
+    {
+      $lookup: {
+        form: "sububscriptions",
+        localField: "_id",
+        foreignField: "subuscriber",
+        as: "subuscriberTo",
+      },
+    },
+    {
+      $addFields: {
+        subuscribersCount: {
+          $size: "$Subuscribers",
+        },
+        chanelSubuscribeToCount: {
+          $size: "$subuscribeTo",
+        },
+      },
+    },
+    {
+      isSubuscribed: {
+        $cond: {
+          if: { $in: [req.user?._id, "$subuscribers.subuscriber"] },
+          then: true,
+          else: false,
+        },
+      },
+    },
+    {
+      $project: {
+        fullName: 1,
+        userName: 1,
+        email: 1,
+        avatar: 1,
+        coverImage: 1,
+        subuscribersCount: 1,
+        chanelSubuscribeToCount: 1,
+        isSubuscribed: 1,
+      },
+    },
+  ]);
 
-   return req.status(200)
-   .json(new apiResponse(200,user[0].WatchHistory,"User watch history"))
-})
+  if (!channel.length) {
+    throw new apiError(404, "chanel not found");
+  }
 
-export { 
-  registerUser, 
-  logInUser, 
+  return req
+    .status(200)
+    .json(new apiResponse(200, channel[0], "User chanel fetched successfully"));
+});
+
+const getUserWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: [
+                    {
+                      avatar: 1,
+                      userName: 1,
+                      fullName: 1,
+                      email: 1,
+                    },
+                    {
+                      $addFields: {
+                        owner: {
+                          $first: "$owner",
+                        },
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, user[0].watchHistory, "User watch history"));
+});
+
+const getUserVideo = asyncHandler(async (req, res) => {
+  const { userName } = req.params;
+  console.log(userName);
+  if (!userName) {
+    throw new apiError(404, "User not found");
+  }
+ 
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id),
+      },
+    },
+    {
+      $lookup:{
+        from:"videos",
+        localField:"_id",
+        foreignField:"owner",
+        as:"uplodedVideos",
+      },
+     }
+  ]);
+
+   console.log("users",user)
+  return res
+    .status(200)
+    .json(new apiResponse(200, user, "user data"));
+});
+export {
+  registerUser,
+  logInUser,
   logOutUser,
   refershAcessToken,
   changeCurrentPassword,
@@ -439,5 +493,6 @@ export {
   updatedUserAvatar,
   updatedUserCoverIamger,
   getUserChanelProfile,
-  getUserWatchHistory
-  };
+  getUserVideo,
+  getUserWatchHistory,
+};

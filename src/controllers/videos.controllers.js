@@ -3,6 +3,7 @@ import { Videos } from "../models/video.models.js";
 import { apiError } from "../utils/apiError.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { apiResponse } from "../utils/apiResponse.js";
+import mongoose from "mongoose";
 
 const videosUplodedByUser = asyncHandler(async (req, res) => {
   const { videoFile, thumbnail, title, description } = req.body;
@@ -34,17 +35,25 @@ const videosUplodedByUser = asyncHandler(async (req, res) => {
   }
 
   const uplodedThumbnailUrl = await uploadOnCloudinary(localUserThumbnailPath);
+  
 
   const videosDetails = await Videos.create({
     title,
     thumbnail: uplodedThumbnailUrl.url || "",
     videoFile: uplodedVideoUrl.url,
     description,
+    duration:uplodedVideoUrl.duration,
+    views:uplodedVideoUrl.views,
+    owner: req.user._id,
+
+
   });
 
   return res
     .status(200)
     .json(new apiResponse(200, videosDetails, "Video uploaded successfully"));
 });
+
+
 
 export { videosUplodedByUser };

@@ -3,6 +3,7 @@ import {
     changeCurrentPassword, 
     currentUser, 
     getUserChanelProfile, 
+    getUserVideo, 
     getUserWatchHistory, 
     registerUser, 
     upadteAccountDetalis, 
@@ -71,6 +72,8 @@ router
 .route("/history")
 .get(jwtValidation, getUserWatchHistory)
 
-
+router
+.route("/user-videos/:userName")
+.post(jwtValidation, getUserVideo)
 
 export default router  
