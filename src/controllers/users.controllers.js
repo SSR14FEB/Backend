@@ -460,7 +460,7 @@ const getUserVideo = asyncHandler(async (req, res) => {
   if (!userName) {
     throw new apiError(404, "User not found");
   }
- 
+
   const user = await User.aggregate([
     {
       $match: {
@@ -468,19 +468,37 @@ const getUserVideo = asyncHandler(async (req, res) => {
       },
     },
     {
-      $lookup:{
-        from:"videos",
-        localField:"_id",
-        foreignField:"owner",
-        as:"uplodedVideos",
+      $lookup: {
+        from: "videos",
+        localField: "_id",
+        foreignField: "owner",
+        as: "uplodedVideos",
+        pipeline: [
+          {
+            $project: {
+              title: 1,
+              thumbnail: 1,
+              videoFile: 1,
+              description: 1,
+              duration: 1,
+              views: 1,
+            },
+          },
+        ],
       },
-     }
+    },
+    {
+      $addFields: {
+        uplodedVideosCount: {
+          $size: "$uplodedVideos",
+        },
+      },
+    },
   ]);
 
-   console.log("users",user)
   return res
     .status(200)
-    .json(new apiResponse(200, user, "user data"));
+    .json(new apiResponse(200, user[0].uplodedVideos, "user data"));
 });
 export {
   registerUser,
