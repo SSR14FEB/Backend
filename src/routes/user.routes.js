@@ -45,8 +45,8 @@ router
 .post(refershAcessToken)
 
 router
-.route("/get-current-user")
-.get(jwtValidation, currentUser)
+.route("/get-current-user/:userId")
+.get(jwtValidation,currentUser)
 
 router
 .route("/change-password")
@@ -73,7 +73,7 @@ router
 .get(jwtValidation, getUserWatchHistory)
 
 router
-.route("/user-videos/:userName")
-.post(jwtValidation, getUserVideo)
+.route("/user-videos")
+.patch(jwtValidation,getUserVideo)
 
 export default router  

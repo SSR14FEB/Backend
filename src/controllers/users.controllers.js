@@ -250,9 +250,10 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const currentUser = asyncHandler(async (req, res) => {
-  return req
-    .status(200)
-    .json(200, req.user, "current user fetched successfully");
+  const {userId} = req.params
+  console.log(userId)
+  return res.status(200)
+    .json(new apiResponse(200,req.user,"current user fetched successfully"));
 });
 
 const upadteAccountDetalis = asyncHandler(async (req, res) => {
@@ -455,11 +456,6 @@ const getUserWatchHistory = asyncHandler(async (req, res) => {
 });
 
 const getUserVideo = asyncHandler(async (req, res) => {
-  const { userName } = req.params;
-  console.log(userName);
-  if (!userName) {
-    throw new apiError(404, "User not found");
-  }
 
   const user = await User.aggregate([
     {

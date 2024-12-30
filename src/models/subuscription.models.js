@@ -1,4 +1,4 @@
-import mongooes,{Schema, SchemaType, Types} from "mongoose" 
+import mongooes,{Schema} from "mongoose" 
 
 const subuscriptionSchema = new Schema({
     subuscriber:{
