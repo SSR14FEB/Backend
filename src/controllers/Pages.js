@@ -35,15 +35,15 @@ const Pages = asyncHandler(async(req, res) => {
          }
         
 
-         const result = await Videos.aggregatePaginate(aggregateQuery,option)
+         const videoResult = await Videos.aggregatePaginate(aggregateQuery,option)
 
-         if(!result){
+         if(!videoResult){
             throw new apiError(404,"Videos not available")
          }
 
          return res
          .status(200) // Ensure a valid HTTP status code
-         .json(new apiResponse(200,result,"Paginated videos"));
+         .json(new apiResponse(200,videoResult,"Paginated videos"));
 
 })
 
