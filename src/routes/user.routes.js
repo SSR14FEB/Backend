@@ -73,7 +73,7 @@ router
 .get(jwtValidation, getUserWatchHistory)
 
 router
-.route("/user-videos")
-.patch(jwtValidation,getUserVideo)
+.route("/user-videos/:userName")
+.get(jwtValidation,getUserVideo)
 
 export default router  

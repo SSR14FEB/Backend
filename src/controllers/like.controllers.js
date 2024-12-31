@@ -12,6 +12,7 @@ const likedByUser = asyncHandler(async(req,res)=>{
     if(likeCount % 2 == 0){
         liked = false
     } 
+    // coment is temrory suspended
     if(liked){
        const liked = await Like.create({
         videoLikedByUser:videoId,
