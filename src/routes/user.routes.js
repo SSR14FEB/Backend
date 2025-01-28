@@ -5,6 +5,7 @@ import {
     getUserChanelProfile, 
     getUserVideo, 
     getUserWatchHistory, 
+    getUserCredentials,
     registerUser, 
     upadteAccountDetalis, 
     updatedUserAvatar, 
@@ -13,8 +14,10 @@ import {
 import { upload } from '../middlewares/multer.middlewares.js'
 import { logInUser} from '../controllers/users.controllers.js'
 import { logOutUser } from '../controllers/users.controllers.js'
-import { jwtValidation } from '../middlewares/auth.middlewares.js'
+import { jwtValidation} from '../middlewares/auth.middlewares.js'
+import { mailSender } from '../middlewares/mailSender.js'
 import { refershAcessToken } from '../controllers/users.controllers.js'
+import { verifyEmail } from '../controllers/verifyEmail.js'
 
 const router = Router()
 
@@ -30,7 +33,12 @@ router
         maxCount:1
     }
 ]), 
-registerUser)
+registerUser,mailSender)
+
+router
+.route("/verifyToken")
+.get(verifyEmail)
+
 
 router
 .route("/login")
@@ -75,5 +83,9 @@ router
 router
 .route("/user-videos/:userName")
 .get(jwtValidation,getUserVideo)
+
+router
+.route("/find-user")
+.post(getUserCredentials)
 
 export default router  

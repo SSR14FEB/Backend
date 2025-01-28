@@ -11,7 +11,7 @@ dotenv.config({
 //MONGODB CONNECTION 
 connectDB()
 .then(()=>{
-    app.listen(process.env.PORT||8000,()=>{
+    app.listen(process.env.PORT||8201,()=>{
     console.log(`SERVER IS RUNNIG ON PROT || ${process.env.PORT}`)
 })
     app.on("error",(error)=>{

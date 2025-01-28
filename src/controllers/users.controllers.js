@@ -25,7 +25,7 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
   }
 };
 
-const registerUser = asyncHandler(async (req, res) => {
+const registerUser = asyncHandler(async (req, res,next) => {
   // LOGIC
   // Get dtails from user
   // Valdation - not empty
@@ -37,10 +37,39 @@ const registerUser = asyncHandler(async (req, res) => {
   // Check user creation
   // Return response
 
-  const { fullName, email, userName, password } = req.body;
+  const {
+    userName,
+    about, 
+    firstName, 
+    lastName, 
+    email, 
+    password,
+    country,
+    city,
+    state,
+    postalCode} = req.body;
+
+    console.log(userName,
+      about, 
+      firstName, 
+      lastName, 
+      email, 
+      password,
+      country,
+      city,
+      state,
+      postalCode)
 
   if (
-    [fullName, email, userName, password].some((fields) => fields?.trim() == "")
+    [ firstName, 
+      lastName, 
+      about, 
+      email, 
+      userName,
+      country,
+      city,
+      state,
+      postalCode, password].some((fields) => fields?.trim() == "")
   ) {
     throw apiError(400, "All fields are requierd");
   }
@@ -77,12 +106,18 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({
-    fullName,
+    userName,
+    about,
     avatar: avatar.url,
     coverImage: coverImage?.url || "",
-    userName: userName.toLowerCase(),
+    firstName,
+    lastName,
     email,
     password,
+    country,
+    city,
+    state,
+    postalCode,
   });
 
   const createdUser = await User.findById(user._id).select(
@@ -93,9 +128,15 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new apiError(500, "Something went wrong while registering user");
   }
 
-  return res
-    .status(200)
-    .json(new apiResponse(200, createdUser, "User registerd successfully"));
+  
+  req.user = user
+  
+  // return is removed from here to just for checking 
+  res 
+  .status(200)
+  .json(new apiResponse(200, createdUser, "User registerd successfully"));
+  
+  next()
 });
 
 const logInUser = asyncHandler(async (req, res) => {
@@ -112,7 +153,7 @@ const logInUser = asyncHandler(async (req, res) => {
   if (!(userName || email)) {
     throw new apiError(400, "User name or email is required ");
   }
-
+ 
   const user = await User.findOne({
     $or: [{ userName }, { email }],
   });
@@ -148,7 +189,7 @@ const logInUser = asyncHandler(async (req, res) => {
       new apiResponse(
         200,
         {
-          user: logInUser,
+          user: user,
           accessToken,
           refershToken,
         },
@@ -248,6 +289,22 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .status(200)
     .json(new apiResponse(200, {}, "Current password changed successfully"));
 });
+
+const getUserCredentials=asyncHandler(async(req,res)=>{
+  const {userCredentials} = req.body
+  console.log(userCredentials)
+  
+  const user = await User.findOne({
+    $or:[{userName:userCredentials}, {email:userCredentials} ]
+  })
+
+  if(!user){
+    throw new apiError(404,"user not found")
+  }
+  return res
+  .status(200)
+  .json(new apiResponse(200,user,"matched users"))
+})
 
 const currentUser = asyncHandler(async (req, res) => {
   const {userId} = req.params
@@ -509,4 +566,5 @@ export {
   getUserChanelProfile,
   getUserVideo,
   getUserWatchHistory,
+  getUserCredentials
 };
